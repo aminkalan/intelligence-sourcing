@@ -1,0 +1,6 @@
+{
+  "name": "SourceIQ - پلتفرم هوشمند ارزیابی و مقایسه تأمین‌کنندگان بین‌المللی",
+  "description": "پلتفرم جامع تحلیل، اعتبارسنجی، استعلام قیمت و مقایسه بهای تمام‌شده تأمین‌کنندگان خارجی برای بازرگانان و واردکنندگان",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
