@@ -9,11 +9,17 @@ import {
   RefreshCw,
   Plus,
   X,
+  Globe2,
+  TrendingUp,
+  BarChart3,
+  ExternalLink,
+  ShieldAlert,
 } from 'lucide-react';
 import { OrangeFeaturePanel } from '../common/OrangeFeaturePanel';
-import { toPersianDigits } from '../../utils/persian';
+import { toPersianDigits, formatPersianPercent } from '../../utils/persian';
 import { useToast } from '../common/Toast';
 import { PageId } from '../../types';
+import { MOCK_COMTRADE_FLOWS } from '../../data/mockData';
 
 interface ProductDefinitionPageProps {
   onNavigate: (page: PageId, extra?: any) => void;
@@ -440,6 +446,180 @@ export const ProductDefinitionPage: React.FC<ProductDefinitionPageProps> = ({ on
               />
             </div>
           </div>
+        </div>
+
+        {/* UN Comtrade Trade Flow Analysis & Benchmark Hub */}
+        <div className="swiss-card p-6 space-y-5">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-4 hairline-b">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-[#181818] text-[#FDF498] flex items-center justify-center shrink-0">
+                <Globe2 className="w-5 h-5" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-bold text-base text-[#141414]">
+                    پایگاه داده تجارت بین‌الملل UN Comtrade
+                  </h3>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#FDF498] text-[#141414]">
+                    داده‌های رسمی سالانه
+                  </span>
+                </div>
+                <p className="text-xs text-[#7E7D7A] mt-0.5">
+                  تحلیل جریان صادرات جهانی، قیمت بنچمارک و سهم بازارهای آلترناتیو برای این کد تعرفه
+                </p>
+              </div>
+            </div>
+
+            {/* Quick HS Code Switcher */}
+            <div className="flex items-center gap-1.5 bg-[#F5F4F0] p-1 rounded-xl text-xs">
+              {MOCK_COMTRADE_FLOWS.map((flow) => (
+                <button
+                  key={flow.hsCode}
+                  type="button"
+                  onClick={() => {
+                    setHsCode(flow.hsCode);
+                    if (flow.hsCode === '8501.52.00') {
+                      setProductName('الکتروموتور آسنکرون سه فاز صنعتی راندمان بالا');
+                      setTargetBudget('145.00');
+                    } else {
+                      setProductName('بلبرینگ صنعتی شیار عمیق دور بالا');
+                      setTargetBudget('3.20');
+                    }
+                    showToast(
+                      'کد تعرفه به‌روزرسانی شد',
+                      `جریان تجارت جهانی برای تعرفه ${flow.hsCode} بارگذاری گردید.`,
+                      'info'
+                    );
+                  }}
+                  className={`px-3 py-1.5 rounded-lg font-bold transition-all ${
+                    hsCode === flow.hsCode
+                      ? 'bg-[#181818] text-white shadow-xs'
+                      : 'text-[#7E7D7A] hover:text-[#141414]'
+                  }`}
+                >
+                  <span>کد {flow.hsCode}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Current Selected Flow Details */}
+          {(() => {
+            const flow =
+              MOCK_COMTRADE_FLOWS.find((f) => f.hsCode === hsCode) || MOCK_COMTRADE_FLOWS[0];
+
+            return (
+              <div className="space-y-4">
+                {/* 3 Metric Tiles */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="bg-[#FAF9F7] p-3.5 rounded-xl border border-[#E3E1DD]">
+                    <div className="text-[11px] text-[#7E7D7A]">حجم صادرات سالانه جهانی</div>
+                    <div className="text-xl font-bold text-[#141414] mt-1 tabular-nums">
+                      ${toPersianDigits(flow.globalExportVolumeBillionUsd.toFixed(1))} میلیارد
+                    </div>
+                    <div className="text-[10px] text-[#52C41A] font-semibold mt-0.5 flex items-center gap-1">
+                      <TrendingUp className="w-3 h-3" />
+                      <span>رشد تقاضای جهانی</span>
+                    </div>
+                  </div>
+
+                  <div className="bg-[#FAF9F7] p-3.5 rounded-xl border border-[#E3E1DD]">
+                    <div className="text-[11px] text-[#7E7D7A]">سهم بازار واردات ایران</div>
+                    <div className="text-xl font-bold text-[#141414] mt-1 tabular-nums">
+                      {formatPersianPercent(flow.iranImportSharePercent, 2)}
+                    </div>
+                    <div className="text-[10px] text-[#7E7D7A] mt-0.5">
+                      ارزش تخمینی واردات: ~${toPersianDigits(Math.round(flow.globalExportVolumeBillionUsd * flow.iranImportSharePercent * 10))} میلیون
+                    </div>
+                  </div>
+
+                  <div className="bg-[#FAF9F7] p-3.5 rounded-xl border border-[#E3E1DD]">
+                    <div className="text-[11px] text-[#7E7D7A]">تنوع بازارهای هدف پیشنهادی</div>
+                    <div className="text-xs font-bold text-[#EE6123] mt-1 leading-snug">
+                      {flow.recommendedTargetCountries.join(' • ')}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Country Benchmark Table */}
+                <div className="border border-[#E3E1DD] rounded-xl overflow-hidden">
+                  <div className="bg-[#F5F4F0] px-4 py-2.5 text-xs font-bold text-[#141414] flex justify-between items-center">
+                    <span>تحلیل کشورهای عمده صادرکننده و قیمت بنچمارک (FOB Benchmark)</span>
+                    <span className="text-[11px] font-normal text-[#7E7D7A]">
+                      منبع: پایگاه داده آماری سازمان ملل متحد
+                    </span>
+                  </div>
+
+                  <div className="divide-y divide-[#E3E1DD]">
+                    {flow.topExportingCountries.map((c) => (
+                      <div
+                        key={c.code}
+                        className="px-4 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs hover:bg-[#FAF9F7] transition-colors"
+                      >
+                        <div className="flex items-center gap-3 min-w-[180px]">
+                          <span className="text-2xl">{c.flag}</span>
+                          <div>
+                            <div className="font-bold text-[#141414] flex items-center gap-1.5">
+                              <span>{c.country}</span>
+                              <span className="text-[10px] text-[#7E7D7A] font-mono">({c.code})</span>
+                              {c.code === 'VN' && (
+                                <span className="bg-[#FDF498] text-[#141414] text-[9px] px-1.5 py-0.5 rounded font-bold">
+                                  بهترین فرصت رقابتی
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-[11px] text-[#7E7D7A]">
+                              اینکوترم متداول: {c.primaryIncoterm}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Share bar */}
+                        <div className="flex-1 max-w-xs">
+                          <div className="flex justify-between text-[11px] text-[#7E7D7A] mb-1">
+                            <span>سهم صادرات جهانی:</span>
+                            <span className="font-bold text-[#141414] tabular-nums">
+                              {formatPersianPercent(c.sharePercent, 1)}
+                            </span>
+                          </div>
+                          <div className="w-full bg-[#E3E1DD] rounded-full h-2 overflow-hidden">
+                            <div
+                              className={`h-full rounded-full ${
+                                c.code === 'VN' ? 'bg-[#EE6123]' : 'bg-[#181818]'
+                              }`}
+                              style={{ width: `${Math.min(100, c.sharePercent * 2.5)}%` }}
+                            />
+                          </div>
+                        </div>
+
+                        {/* Benchmark FOB price & Growth */}
+                        <div className="flex items-center gap-6 sm:text-left">
+                          <div>
+                            <div className="text-[10px] text-[#7E7D7A]">میانگین قیمت FOB بنچمارک</div>
+                            <div className="text-sm font-bold text-[#141414] tabular-nums">
+                              ${toPersianDigits(c.avgExportUnitPriceUsd.toFixed(2))}
+                            </div>
+                          </div>
+
+                          <div className="min-w-[70px]">
+                            <div className="text-[10px] text-[#7E7D7A]">رشد سالانه (YoY)</div>
+                            <div
+                              className={`text-xs font-bold tabular-nums ${
+                                c.growthRateYoY >= 0 ? 'text-[#52C41A]' : 'text-[#E5484D]'
+                              }`}
+                            >
+                              {c.growthRateYoY >= 0 ? '+' : ''}
+                              {formatPersianPercent(c.growthRateYoY, 1)}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
         </div>
       </div>
 

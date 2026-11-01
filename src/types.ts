@@ -38,6 +38,38 @@ export interface Supplier {
   verifiedStatus: 'تأیید کامل' | 'ممیزی حضوری' | 'در حال ارزیابی';
   description: string;
   matchScore?: number;
+  factoryAudit?: FactoryAuthenticityAudit;
+}
+
+export interface FactoryAuthenticityAudit {
+  isVerifiedManufacturer: boolean;
+  productionLineVerified: boolean;
+  registeredCapitalUsd: number;
+  operationalSquareMeters: number;
+  workerHeadcount: number;
+  factoryEquipmentList: string[];
+  utilityBillVerified: boolean;
+  bankBeneficiaryMatches: boolean;
+  domainRegistrationDate: string;
+  independentAuditAgency: string;
+  riskFlags: string[];
+}
+
+export interface ComtradeCommodityFlow {
+  hsCode: string;
+  productNameFa: string;
+  globalExportVolumeBillionUsd: number;
+  topExportingCountries: {
+    country: string;
+    code: string;
+    flag: string;
+    sharePercent: number;
+    avgExportUnitPriceUsd: number;
+    growthRateYoY: number;
+    primaryIncoterm: string;
+  }[];
+  iranImportSharePercent: number;
+  recommendedTargetCountries: string[];
 }
 
 export interface VerificationLayer {

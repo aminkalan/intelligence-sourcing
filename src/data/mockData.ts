@@ -6,6 +6,7 @@ import {
   AlternativeCountry,
   MarketAlert,
   MonitoredProduct,
+  ComtradeCommodityFlow,
 } from '../types';
 
 export const DEMO_NOTICE = 'داده‌های تحلیلی نسخه آزمایشی (Demo Mode) - مبتنی بر استعلام‌های نمونه پاییز ۱۴۰۴';
@@ -954,3 +955,106 @@ export const MOCK_MONITORED_PRODUCTS: MonitoredProduct[] = [
     riskLevel: 'متوسط',
   },
 ];
+
+export const MOCK_COMTRADE_FLOWS: ComtradeCommodityFlow[] = [
+  {
+    hsCode: '8483.40.00',
+    productNameFa: 'بلبرینگ، رولربیرینگ و یاتاقان‌های انتقال نیرو',
+    globalExportVolumeBillionUsd: 34.2,
+    iranImportSharePercent: 0.42, // ~$142M
+    recommendedTargetCountries: ['ویتنام (رشد صادرات +۱۴.۲٪)', 'ترکیه (حمل زمینی سریع)', 'هند (تسویه غیردلاری)'],
+    topExportingCountries: [
+      {
+        country: 'چین',
+        code: 'CN',
+        flag: '🇨🇳',
+        sharePercent: 31.4,
+        avgExportUnitPriceUsd: 3.40,
+        growthRateYoY: 2.1,
+        primaryIncoterm: 'FOB Ningbo / Shanghai',
+      },
+      {
+        country: 'ویتنام',
+        code: 'VN',
+        flag: '🇻🇳',
+        sharePercent: 6.8,
+        avgExportUnitPriceUsd: 2.95,
+        growthRateYoY: 14.2,
+        primaryIncoterm: 'FOB Haiphong',
+      },
+      {
+        country: 'ترکیه',
+        code: 'TR',
+        flag: '🇹🇷',
+        sharePercent: 4.1,
+        avgExportUnitPriceUsd: 3.85,
+        growthRateYoY: 6.4,
+        primaryIncoterm: 'CPT / FCA Bursa',
+      },
+      {
+        country: 'هند',
+        code: 'IN',
+        flag: '🇮🇳',
+        sharePercent: 3.9,
+        avgExportUnitPriceUsd: 3.10,
+        growthRateYoY: 8.9,
+        primaryIncoterm: 'FOB Nhava Sheva',
+      },
+      {
+        country: 'آلمان',
+        code: 'DE',
+        flag: '🇩🇪',
+        sharePercent: 18.2,
+        avgExportUnitPriceUsd: 6.80,
+        growthRateYoY: -1.2,
+        primaryIncoterm: 'FCA Hamburg',
+      },
+      {
+        country: 'ژاپن',
+        code: 'JP',
+        flag: '🇯🇵',
+        sharePercent: 12.5,
+        avgExportUnitPriceUsd: 5.90,
+        growthRateYoY: 0.5,
+        primaryIncoterm: 'FOB Yokohama',
+      },
+    ],
+  },
+  {
+    hsCode: '8501.52.00',
+    productNameFa: 'الکتروموتورهای آسنکرون سه فاز راندمان بالا (توان 750W تا 75kW)',
+    globalExportVolumeBillionUsd: 28.6,
+    iranImportSharePercent: 0.38,
+    recommendedTargetCountries: ['ترکیه (استاندارد CE اروپا)', 'چین (تنوع فریم و تیراژ بالا)'],
+    topExportingCountries: [
+      {
+        country: 'چین',
+        code: 'CN',
+        flag: '🇨🇳',
+        sharePercent: 38.0,
+        avgExportUnitPriceUsd: 142.0,
+        growthRateYoY: 4.5,
+        primaryIncoterm: 'FOB Shanghai',
+      },
+      {
+        country: 'ترکیه',
+        code: 'TR',
+        flag: '🇹🇷',
+        sharePercent: 7.2,
+        avgExportUnitPriceUsd: 165.0,
+        growthRateYoY: 9.1,
+        primaryIncoterm: 'FCA Istanbul',
+      },
+      {
+        country: 'هند',
+        code: 'IN',
+        flag: '🇮🇳',
+        sharePercent: 5.8,
+        avgExportUnitPriceUsd: 138.0,
+        growthRateYoY: 11.2,
+        primaryIncoterm: 'FOB Mumbai',
+      },
+    ],
+  },
+];
+

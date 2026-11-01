@@ -1,6 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { computeLandedCost, computeWeightedRanking, DEFAULT_WEIGHTS } from './calculations';
+import {
+  computeLandedCost,
+  computeWeightedRanking,
+  DEFAULT_WEIGHTS,
+  getIncoterm2020Obligations,
+  evaluateSupplierAuthenticity,
+  normalizeProformaInvoice,
+} from './calculations';
 import { toPersianDigits, formatPersianCurrency, formatPersianPercent } from './persian';
 
 test('computeLandedCost computes accurate total and per unit cost', () => {
@@ -52,3 +59,56 @@ test('Persian formatting transforms Latin digits to Persian glyphs', () => {
   assert.equal(formatPersianCurrency(412000, '$'), '$۴۱۲,۰۰۰');
   assert.equal(formatPersianPercent(8.7, 1), '۸.۷٪');
 });
+
+test('getIncoterm2020Obligations correctly sets buyer vs seller rules', () => {
+  const exw = getIncoterm2020Obligations('EXW');
+  assert.equal(exw[0].sellerPays, false);
+  assert.equal(exw[0].buyerPays, true);
+
+  const ddp = getIncoterm2020Obligations('DDP');
+  assert.equal(ddp[6].sellerPays, true); // seller pays import clearance in DDP
+  assert.equal(ddp[6].buyerPays, false);
+});
+
+test('evaluateSupplierAuthenticity detects legitimate factories vs brokers', () => {
+  const factorySignals = {
+    hasPhysicalFactoryVideo: true,
+    bankAccountMatchesLegalName: true,
+    hasCustomsExportRecords: true,
+    domainAgeYears: 8,
+    claimedAgeYears: 10,
+    hasSgsOrTuvAudit: true,
+    catalogPhotosOriginal: true,
+  };
+
+  const result = evaluateSupplierAuthenticity(factorySignals);
+  assert.equal(result.isHighRisk, false);
+  assert.equal(result.classification, 'سازنده واقعی احراز شده');
+  assert.ok(result.safetyScore >= 80);
+});
+
+test('normalizeProformaInvoice normalizes FOB terms to CIF and estimates landed cost', () => {
+  const pi = {
+    proformaNumber: 'PI-VN-2026-904',
+    supplierName: 'VinaPrecision JSC',
+    country: 'ویتنام',
+    currency: 'USD' as const,
+    rawUnitPrice: 2.85,
+    quantity: 10000,
+    quotedIncoterm: 'FOB' as const,
+    portOfLoading: 'Haiphong',
+    freightEstimateUsd: 1400, // $0.14 / unit
+    insuranceEstimateUsd: 100, // $0.01 / unit
+    tariffPercent: 15,
+    leadTimeDays: 28,
+    paymentTerms: '۲۰٪ پیش‌پرداخت، ۸۰٪ پس از بازرسی SGS قبل از بارگیری',
+    benchmarkPriceUsd: 4.2, // current China landed benchmark $4.22
+  };
+
+  const normalized = normalizeProformaInvoice(pi);
+  assert.equal(normalized.normalizedUnitPriceCifUsd, 3.0); // 2.85 + 0.14 + 0.01 = 3.00
+  assert.ok(normalized.landedCostEstimatedPerUnitUsd > 3.0);
+  assert.equal(normalized.paymentRiskGrade, 'کم‌ریسک (استاندارد بازرگانی)');
+  assert.ok(normalized.savingsVsBenchmarkPercent > 0);
+});
+

@@ -12,6 +12,13 @@ import {
   CheckCircle,
   FileDown,
   Sparkles,
+  Printer,
+  X,
+  FileSpreadsheet,
+  ShieldCheck,
+  Scale,
+  Globe,
+  Building2,
 } from 'lucide-react';
 import { OrangeFeaturePanel } from '../common/OrangeFeaturePanel';
 import { MOCK_SUPPLIERS, BUYER_PROFILE, MOCK_RFQS } from '../../data/mockData';
@@ -507,49 +514,281 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({ onNavigate }) => {
         </div>
       </OrangeFeaturePanel>
 
-      {/* Report Modal */}
+      {/* Comprehensive Executive Purchasing Dossier Modal */}
       {downloadModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="swiss-card max-w-md w-full p-6 space-y-4 animate-in fade-in zoom-in-95 duration-150">
-            <div className="flex items-start justify-between">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5">
+          <div className="swiss-card max-w-4xl w-full max-h-[92vh] overflow-y-auto p-6 space-y-5 animate-in fade-in zoom-in-95 duration-150">
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 hairline-b">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-[#EE6123]/10 text-[#EE6123] flex items-center justify-center">
-                  <FileDown className="w-5 h-5" />
+                <div className="w-12 h-12 rounded-xl bg-[#181818] text-[#FDF498] flex items-center justify-center shrink-0">
+                  <FileDown className="w-6 h-6" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-base text-[#141414]">گزارش جامع مدیر خرید</h3>
-                  <p className="text-xs text-[#7E7D7A]">تهیه گزارش مدیریتی دوره پاییز ۱۴۰۴</p>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-lg font-bold text-[#141414]">
+                      پرونده تحلیلی خرید بین‌الملل (Executive Purchasing Dossier)
+                    </h3>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#FDF498] text-[#181818]">
+                      مصوب هیئت مدیره
+                    </span>
+                  </div>
+                  <p className="text-xs text-[#7E7D7A] mt-0.5">
+                    گزارش جامع استراتژی تأمین، تحلیل بهای تمام‌شده، احراز اصالت کارخانجات و تاب‌آوری زنجیره ارزش
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    window.print();
+                  }}
+                  className="px-3 py-1.5 rounded-xl bg-[#F5F4F0] hover:bg-[#EAE8E4] text-xs font-bold text-[#141414] transition-colors flex items-center gap-1.5"
+                >
+                  <Printer className="w-4 h-4 text-[#EE6123]" />
+                  <span>چاپ / PDF</span>
+                </button>
+                <button
+                  onClick={() => setDownloadModalOpen(false)}
+                  className="w-8 h-8 rounded-lg hover:bg-[#F5F4F0] flex items-center justify-center text-[#7E7D7A] hover:text-[#141414]"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Dossier Meta Bar */}
+            <div className="bg-[#FAF9F7] p-3.5 rounded-xl border border-[#E3E1DD] flex flex-wrap items-center justify-between gap-3 text-xs">
+              <div className="flex items-center gap-2">
+                <span className="text-[#7E7D7A]">شرکت خریدار:</span>
+                <span className="font-bold text-[#141414]">{BUYER_PROFILE.companyName}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-[#7E7D7A]">تنظیم‌کننده:</span>
+                <span className="font-bold text-[#141414]">{BUYER_PROFILE.userTitle}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-[#7E7D7A]">دوره گزارش:</span>
+                <span className="font-bold text-[#141414]">پاییز ۱۴۰۴ · کد پیگیری EX-904</span>
+              </div>
+            </div>
+
+            {/* Section A: Executive Summary & Potential Savings */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 text-sm font-bold text-[#141414]">
+                <span className="w-6 h-6 rounded-md bg-[#EE6123] text-white flex items-center justify-center text-xs">
+                  A
+                </span>
+                <span>خلاصه مدیریتی و پیش‌بینی صرفه‌جویی بودجه سالانه</span>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="bg-[#F5F4F0] p-3 rounded-xl">
+                  <div className="text-[11px] text-[#7E7D7A]">صرفه‌جویی پیش‌بینی شده</div>
+                  <div className="text-xl font-bold text-[#52C41A] mt-1 tabular-nums">
+                    {formatPersianCurrency(BUYER_PROFILE.potentialSavingsUsd, '$')}
+                  </div>
+                  <div className="text-[10px] text-[#7E7D7A] mt-0.5">در مقایسه با مبدأ سنتی</div>
+                </div>
+
+                <div className="bg-[#F5F4F0] p-3 rounded-xl">
+                  <div className="text-[11px] text-[#7E7D7A]">کالاهای تحت پوشش</div>
+                  <div className="text-xl font-bold text-[#141414] mt-1 tabular-nums">
+                    {toPersianDigits(BUYER_PROFILE.activeMonitoredProducts)} ردیف
+                  </div>
+                  <div className="text-[10px] text-[#7E7D7A] mt-0.5">ارزش سبد $۲.۸M</div>
+                </div>
+
+                <div className="bg-[#F5F4F0] p-3 rounded-xl">
+                  <div className="text-[11px] text-[#7E7D7A]">کاهش وابستگی به چین</div>
+                  <div className="text-xl font-bold text-[#EE6123] mt-1 tabular-nums">
+                    از ۸۲٪ به ۵۵٪
+                  </div>
+                  <div className="text-[10px] text-[#7E7D7A] mt-0.5">توزیع در ویتنام و ترکیه</div>
+                </div>
+
+                <div className="bg-[#F5F4F0] p-3 rounded-xl">
+                  <div className="text-[11px] text-[#7E7D7A]">شاخص میانگین اعتماد</div>
+                  <div className="text-xl font-bold text-[#141414] mt-1 tabular-nums">
+                    {toPersianDigits(85.4)} / ۱۰۰
+                  </div>
+                  <div className="text-[10px] text-[#52C41A] mt-0.5">احراز هویت کامل کارخانه</div>
                 </div>
               </div>
             </div>
 
-            <div className="bg-[#F5F4F0] p-3 rounded-lg text-xs space-y-1.5 text-[#141414]">
-              <div className="flex justify-between">
-                <span>تعداد کالاهای تحلیل‌شده:</span>
-                <span className="font-bold">{toPersianDigits('۲۴ کالا')}</span>
+            {/* Section B: Landed Cost Matrix (4 Suppliers in Bandar Abbas) */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 text-sm font-bold text-[#141414]">
+                <span className="w-6 h-6 rounded-md bg-[#181818] text-[#FDF498] flex items-center justify-center text-xs">
+                  B
+                </span>
+                <span>ماتریس مقایسه بهای تمام‌شده تحویل در انبار مقصد (بندرعباس)</span>
               </div>
-              <div className="flex justify-between">
-                <span>پیش‌بینی صرفه‌جویی سالانه:</span>
-                <span className="font-bold text-[#52C41A]">{toPersianDigits('$۴۱۲,۰۰۰')}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>فرمت فایل خروجی:</span>
-                <span className="font-bold">PDF استاندارد گزارش هیئت مدیره</span>
+
+              <div className="border border-[#E3E1DD] rounded-xl overflow-x-auto">
+                <table className="w-full text-xs text-right">
+                  <thead>
+                    <tr className="bg-[#FAF9F7] text-[#7E7D7A] hairline-b">
+                      <th className="p-3 font-semibold">تأمین‌کننده و کشور مبدأ</th>
+                      <th className="p-3 font-semibold">اینکوترم</th>
+                      <th className="p-3 font-semibold">قیمت مبدأ (USD)</th>
+                      <th className="p-3 font-semibold">کرایه حمل و بیمه</th>
+                      <th className="p-3 font-semibold">حقوق گمرکی و ترخیص</th>
+                      <th className="p-3 font-semibold bg-[#FDF498]/40 text-[#141414]">
+                        بهای تمام‌شده هر واحد
+                      </th>
+                      <th className="p-3 font-semibold">وضعیت استراتژیک</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#E3E1DD]">
+                    <tr className="hover:bg-[#FAF9F7]">
+                      <td className="p-3 font-bold flex items-center gap-1.5">
+                        <span>🇨🇳</span>
+                        <span>Zhejiang Apex Machinery</span>
+                      </td>
+                      <td className="p-3 font-mono">CIF</td>
+                      <td className="p-3 tabular-nums">${toPersianDigits('3.20')}</td>
+                      <td className="p-3 tabular-nums">${toPersianDigits('0.22')}</td>
+                      <td className="p-3 tabular-nums">${toPersianDigits('0.80')}</td>
+                      <td className="p-3 font-bold tabular-nums text-[#141414] bg-[#F5F4F0]">
+                        ${toPersianDigits('4.22')}
+                      </td>
+                      <td className="p-3 text-[11px] text-[#7E7D7A]">تأمین‌کننده فعلی مبنا</td>
+                    </tr>
+                    <tr className="bg-[#FDF498]/20 hover:bg-[#FDF498]/30 font-semibold">
+                      <td className="p-3 font-bold flex items-center gap-1.5 text-[#EE6123]">
+                        <span>🇻🇳</span>
+                        <span>VinaPrecision JSC</span>
+                      </td>
+                      <td className="p-3 font-mono">FOB</td>
+                      <td className="p-3 tabular-nums font-bold text-[#EE6123]">${toPersianDigits('2.85')}</td>
+                      <td className="p-3 tabular-nums">${toPersianDigits('0.15')}</td>
+                      <td className="p-3 tabular-nums">${toPersianDigits('0.62')}</td>
+                      <td className="p-3 font-black tabular-nums text-[#141414] bg-[#FDF498]">
+                        ${toPersianDigits('3.62')} (-۱۴.۲٪)
+                      </td>
+                      <td className="p-3 text-[11px] font-bold text-[#52C41A]">بهترین پیشنهاد اقتصادی</td>
+                    </tr>
+                    <tr className="hover:bg-[#FAF9F7]">
+                      <td className="p-3 font-bold flex items-center gap-1.5">
+                        <span>🇹🇷</span>
+                        <span>Anatolia Forging & Metal</span>
+                      </td>
+                      <td className="p-3 font-mono">FCA</td>
+                      <td className="p-3 tabular-nums">${toPersianDigits('3.50')}</td>
+                      <td className="p-3 tabular-nums">${toPersianDigits('0.18')}</td>
+                      <td className="p-3 tabular-nums">${toPersianDigits('0.80')}</td>
+                      <td className="p-3 font-bold tabular-nums text-[#141414] bg-[#F5F4F0]">
+                        ${toPersianDigits('4.48')}
+                      </td>
+                      <td className="p-3 text-[11px] text-[#141414]">ترانزیت زمینی فوری (۱۲ روز)</td>
+                    </tr>
+                    <tr className="hover:bg-[#FAF9F7]">
+                      <td className="p-3 font-bold flex items-center gap-1.5">
+                        <span>🇮🇳</span>
+                        <span>Bharat Mechanicals</span>
+                      </td>
+                      <td className="p-3 font-mono">FOB</td>
+                      <td className="p-3 tabular-nums">${toPersianDigits('3.05')}</td>
+                      <td className="p-3 tabular-nums">${toPersianDigits('0.14')}</td>
+                      <td className="p-3 tabular-nums">${toPersianDigits('0.76')}</td>
+                      <td className="p-3 font-bold tabular-nums text-[#141414] bg-[#F5F4F0]">
+                        ${toPersianDigits('3.95')} (-۶.۴٪)
+                      </td>
+                      <td className="p-3 text-[11px] text-[#7E7D7A]">تسویه مستقیم روپیه/درهم</td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
             </div>
 
-            <div className="flex gap-2 pt-2">
+            {/* Section C: Factory Authenticity & Anti-Fraud Shield Summary */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 text-sm font-bold text-[#141414]">
+                <span className="w-6 h-6 rounded-md bg-[#52C41A] text-white flex items-center justify-center text-xs">
+                  C
+                </span>
+                <span>سپر احراز اصالت کارخانجات و رفع شبهه واسطه‌های کاغذی</span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+                <div className="bg-[#FAF9F7] p-3 rounded-xl border border-[#E3E1DD] space-y-1.5">
+                  <div className="font-bold text-[#141414] flex items-center gap-1.5">
+                    <ShieldCheck className="w-4 h-4 text-[#52C41A]" />
+                    <span>احراز حساب بانکی و مالکیت ثبتی</span>
+                  </div>
+                  <p className="text-[11px] text-[#7E7D7A] leading-relaxed">
+                    تطبیق ۱۰۰٪ نام دارنده حساب در بانک مقصد با اساسنامه ثبتی کارخانه جهت جلوگیری از حساب‌های صرافی واسط.
+                  </p>
+                </div>
+
+                <div className="bg-[#FAF9F7] p-3 rounded-xl border border-[#E3E1DD] space-y-1.5">
+                  <div className="font-bold text-[#141414] flex items-center gap-1.5">
+                    <Building2 className="w-4 h-4 text-[#52C41A]" />
+                    <span>ممیزی توان فیزیکی تولید (CNC & Area)</span>
+                  </div>
+                  <p className="text-[11px] text-[#7E7D7A] leading-relaxed">
+                    راستی‌آزمایی سالن تولید ۳۵,۰۰۰ مترمربعی و ۲۴ دستگاه CNC ژاپنی با استعلام قبض برق صنعتی ماهانه.
+                  </p>
+                </div>
+
+                <div className="bg-[#FAF9F7] p-3 rounded-xl border border-[#E3E1DD] space-y-1.5">
+                  <div className="font-bold text-[#141414] flex items-center gap-1.5">
+                    <FileCheck className="w-4 h-4 text-[#52C41A]" />
+                    <span>سوابق کوتاژ صادراتی گمرک (Bill of Lading)</span>
+                  </div>
+                  <p className="text-[11px] text-[#7E7D7A] leading-relaxed">
+                    بررسی ۱۲۰ بارنامه صادراتی به اروپا و خاورمیانه در ۳ سال متوالی بدون گزارش عدم انطباق کیفی.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Section D: Trade Policy & Inspection Conditions Checklist */}
+            <div className="bg-[#FAF9F7] p-4 rounded-xl border border-[#E3E1DD] space-y-3">
+              <div className="text-xs font-bold text-[#141414]">
+                الزامات و شروط حقوقی قرارداد خرید خارجی (SGS / Pre-Shipment Audit)
+              </div>
+              <ul className="text-xs text-[#7E7D7A] space-y-1.5 list-disc list-inside leading-relaxed">
+                <li>
+                  <strong className="text-[#141414]">شرط بازرسی شخص ثالث:</strong> تسویه نهایی ۸۰٪ منوط به صدور گواهی بازرسی کمّی و کیفی SGS قبل از بارگیری در مبدأ است.
+                </li>
+                <li>
+                  <strong className="text-[#141414]">جریمه تأخیر در تولید:</strong> درج شرط خسارت توافق‌شده ۰.۱٪ از ارزش کل فاکتور به ازای هر روز تأخیر بعد از موعد مقرر.
+                </li>
+                <li>
+                  <strong className="text-[#141414]">قفل نوسان نرخ ارز:</strong> انعقاد قرارداد با نرخ ثابت USD و استفاده از خط اعتباری واریز نقدی مرحله‌ای جهت کاهش ریسک تسعیر.
+                </li>
+              </ul>
+            </div>
+
+            {/* Modal Footer Actions */}
+            <div className="flex flex-col sm:flex-row gap-2 pt-2 hairline-t">
+              <button
+                onClick={() => {
+                  window.print();
+                }}
+                className="flex-1 bg-[#181818] text-white hover:bg-black py-2.5 px-4 rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-2"
+              >
+                <Printer className="w-4 h-4 text-[#FDF498]" />
+                <span>چاپ نسخه رسمی پرونده یا خروجی PDF</span>
+              </button>
+
               <button
                 onClick={handleDownloadReport}
-                className="flex-1 bg-[#181818] text-white py-2 rounded-xl text-xs font-bold hover:bg-black transition-colors"
+                className="px-4 py-2.5 bg-[#EE6123] text-white hover:bg-[#D95318] rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-1.5"
               >
-                تأیید و دریافت فایل
+                <FileSpreadsheet className="w-4 h-4" />
+                <span>دانلود مدل مالی اکسل (XLSX)</span>
               </button>
+
               <button
                 onClick={() => setDownloadModalOpen(false)}
-                className="px-4 py-2 bg-[#F5F4F0] text-[#141414] hover:bg-[#EAE8E4] rounded-xl text-xs font-medium transition-colors"
+                className="px-4 py-2.5 bg-[#F5F4F0] text-[#141414] hover:bg-[#EAE8E4] rounded-xl text-xs font-medium transition-colors"
               >
-                انصراف
+                بستن
               </button>
             </div>
           </div>

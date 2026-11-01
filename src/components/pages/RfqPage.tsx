@@ -11,13 +11,17 @@ import {
   Scale,
   X,
   Calendar,
-  Building,
   Check,
+  FileSpreadsheet,
+  UploadCloud,
+  ShieldCheck,
+  Calculator,
 } from 'lucide-react';
 import { OrangeFeaturePanel } from '../common/OrangeFeaturePanel';
 import { MOCK_RFQS, MOCK_SUPPLIERS } from '../../data/mockData';
 import { RfqItem, PageId } from '../../types';
 import { toPersianDigits, formatPersianCurrency, formatPersianPercent } from '../../utils/persian';
+import { normalizeProformaInvoice } from '../../utils/calculations';
 import { useToast } from '../common/Toast';
 
 interface RfqPageProps {
@@ -56,6 +60,86 @@ export const RfqPage: React.FC<RfqPageProps> = ({
   });
 
   const activeRfq = rfqs.find((r) => r.id === activeRfqId) || rfqs[0];
+
+  // Proforma Invoice (PI) Normalizer State
+  const [piModalOpen, setPiModalOpen] = useState(false);
+  const [piSupplierName, setPiSupplierName] = useState('VinaPrecision Mechanical Industries JSC');
+  const [piCountry, setPiCountry] = useState('ویتنام 🇻🇳');
+  const [piNumber, setPiNumber] = useState('PI-VN-2026-904');
+  const [piCurrency, setPiCurrency] = useState<'USD' | 'EUR' | 'CNY' | 'AED'>('USD');
+  const [piUnitPrice, setPiUnitPrice] = useState('2.85');
+  const [piQuantity, setPiQuantity] = useState('10000');
+  const [piIncoterm, setPiIncoterm] = useState<'EXW' | 'FOB' | 'CFR' | 'CIF' | 'DAP' | 'DDP'>('FOB');
+  const [piPort, setPiPort] = useState('Haiphong Port, Vietnam');
+  const [piFreight, setPiFreight] = useState('1400');
+  const [piInsurance, setPiInsurance] = useState('110');
+  const [piTariffPercent, setPiTariffPercent] = useState('15');
+  const [piLeadTime, setPiLeadTime] = useState('28');
+  const [piPaymentTerms, setPiPaymentTerms] = useState('۲۰٪ پیش‌پرداخت، ۸۰٪ پس از بازرسی SGS قبل از بارگیری');
+
+  const normalizedPiResult = normalizeProformaInvoice({
+    proformaNumber: piNumber,
+    supplierName: piSupplierName,
+    country: piCountry,
+    currency: piCurrency,
+    rawUnitPrice: Number(piUnitPrice) || 2.85,
+    quantity: Number(piQuantity) || 10000,
+    quotedIncoterm: piIncoterm,
+    portOfLoading: piPort,
+    freightEstimateUsd: Number(piFreight) || 1400,
+    insuranceEstimateUsd: Number(piInsurance) || 110,
+    tariffPercent: Number(piTariffPercent) || 15,
+    leadTimeDays: Number(piLeadTime) || 28,
+    paymentTerms: piPaymentTerms,
+    benchmarkPriceUsd: 4.22,
+  });
+
+  const loadPiPreset = (preset: 'vietnam' | 'china' | 'turkey') => {
+    if (preset === 'vietnam') {
+      setPiSupplierName('VinaPrecision Mechanical Industries JSC');
+      setPiCountry('ویتنام 🇻🇳');
+      setPiNumber('PI-VN-2026-904');
+      setPiCurrency('USD');
+      setPiUnitPrice('2.85');
+      setPiQuantity('10000');
+      setPiIncoterm('FOB');
+      setPiPort('Haiphong Port');
+      setPiFreight('1400');
+      setPiInsurance('110');
+      setPiTariffPercent('15');
+      setPiLeadTime('28');
+      setPiPaymentTerms('۲۰٪ پیش‌پرداخت، ۸۰٪ پس از بازرسی SGS قبل از بارگیری');
+    } else if (preset === 'china') {
+      setPiSupplierName('Zhejiang Apex Precision Machinery Co.');
+      setPiCountry('چین 🇨🇳');
+      setPiNumber('PI-CN-2026-112');
+      setPiCurrency('USD');
+      setPiUnitPrice('3.20');
+      setPiQuantity('10000');
+      setPiIncoterm('CIF');
+      setPiPort('Ningbo Port');
+      setPiFreight('0');
+      setPiInsurance('0');
+      setPiTariffPercent('15');
+      setPiLeadTime('24');
+      setPiPaymentTerms('۳۰٪ پیش‌پرداخت، ۷۰٪ رونوشت بارنامه B/L');
+    } else {
+      setPiSupplierName('Anatolia Forging & Metal Ind.');
+      setPiCountry('ترکیه 🇹🇷');
+      setPiNumber('PI-TR-2026-058');
+      setPiCurrency('EUR');
+      setPiUnitPrice('3.10');
+      setPiQuantity('6000');
+      setPiIncoterm('FOB');
+      setPiPort('Gemlik / Istanbul');
+      setPiFreight('950');
+      setPiInsurance('90');
+      setPiTariffPercent('10');
+      setPiLeadTime('18');
+      setPiPaymentTerms('LC دیداری ۶۰ روزه با بانک واسط ترکیه');
+    }
+    showToast('پیش‌فاکتور نمونه بارگذاری شد', `اطلاعات پیش‌فاکتور ${preset} استخراج گردید.`, 'info');
+  };
 
   const handleCreateRfq = (e: React.FormEvent) => {
     e.preventDefault();
@@ -118,9 +202,9 @@ export const RfqPage: React.FC<RfqPageProps> = ({
     <div className="flex flex-col lg:flex-row gap-6 items-start">
       {/* Main Content Area (Right Side ~70%) */}
       <div className="flex-1 w-full space-y-6">
-        {/* Top Header: RFQ Switcher & New RFQ Button */}
-        <div className="swiss-card p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-2 overflow-x-auto w-full sm:w-auto pb-1">
+        {/* Top Header: RFQ Switcher & Action Buttons */}
+        <div className="swiss-card p-4 sm:p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-1">
             {rfqs.map((rfq) => (
               <button
                 key={rfq.id}
@@ -137,13 +221,22 @@ export const RfqPage: React.FC<RfqPageProps> = ({
             ))}
           </div>
 
-          <button
-            onClick={() => setNewRfqModalOpen(true)}
-            className="shrink-0 bg-[#EE6123] text-white hover:bg-[#D95318] px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-1.5"
-          >
-            <Plus className="w-4 h-4" />
-            استعلام قیمت جدید (New RFQ)
-          </button>
+          <div className="flex items-center gap-2 w-full md:w-auto shrink-0">
+            <button
+              onClick={() => setPiModalOpen(true)}
+              className="flex-1 md:flex-none bg-[#FDF498] text-[#181818] hover:bg-[#faea65] px-3.5 py-2 rounded-xl text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-1.5"
+            >
+              <FileSpreadsheet className="w-4 h-4 text-[#EE6123]" />
+              نرمال‌سازی پیش‌فاکتور (PI)
+            </button>
+            <button
+              onClick={() => setNewRfqModalOpen(true)}
+              className="flex-1 md:flex-none bg-[#EE6123] text-white hover:bg-[#D95318] px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-1.5"
+            >
+              <Plus className="w-4 h-4" />
+              استعلام جدید (RFQ)
+            </button>
+          </div>
         </div>
 
         {/* Active RFQ Overview Card */}
@@ -544,6 +637,292 @@ export const RfqPage: React.FC<RfqPageProps> = ({
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Proforma Invoice (PI) Normalizer Modal */}
+      {piModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="swiss-card max-w-3xl w-full max-h-[92vh] overflow-y-auto p-6 space-y-5 animate-in fade-in zoom-in-95 duration-150">
+            {/* Header */}
+            <div className="flex items-start justify-between pb-4 hairline-b">
+              <div className="flex items-center gap-3">
+                <div className="w-11 h-11 rounded-xl bg-[#181818] text-[#FDF498] flex items-center justify-center shrink-0">
+                  <Calculator className="w-6 h-6" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-base font-bold text-[#141414]">
+                      نرمال‌ساز و استانداردسازی پیش‌فاکتور (PI Normalizer)
+                    </h3>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#EE6123] text-white">
+                      Incoterms 2020 Engine
+                    </span>
+                  </div>
+                  <p className="text-xs text-[#7E7D7A] mt-0.5">
+                    تبدیل پیش‌فاکتورهای خام با ارزها و اینکوترم‌های ناهمگون به بهای تمام‌شده استاندارد در بندر مقصد
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setPiModalOpen(false)}
+                className="w-8 h-8 rounded-lg hover:bg-[#F5F4F0] flex items-center justify-center text-[#7E7D7A] hover:text-[#141414]"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Quick Presets */}
+            <div className="bg-[#FAF9F7] p-3 rounded-xl border border-[#E3E1DD] space-y-2">
+              <div className="text-[11px] font-bold text-[#141414]">
+                بارگذاری سریع پیش‌فاکتورهای نمونه واقعی:
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => loadPiPreset('vietnam')}
+                  className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-white border border-[#E3E1DD] hover:border-[#EE6123] text-[#141414] transition-all flex items-center gap-1.5"
+                >
+                  <span>🇻🇳</span>
+                  <span>VinaPrecision ($2.85 FOB Haiphong)</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => loadPiPreset('china')}
+                  className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-white border border-[#E3E1DD] hover:border-[#EE6123] text-[#141414] transition-all flex items-center gap-1.5"
+                >
+                  <span>🇨🇳</span>
+                  <span>Zhejiang Apex ($3.20 CIF Bandar Abbas)</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => loadPiPreset('turkey')}
+                  className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-white border border-[#E3E1DD] hover:border-[#EE6123] text-[#141414] transition-all flex items-center gap-1.5"
+                >
+                  <span>🇹🇷</span>
+                  <span>Anatolia Forging (€3.10 FCA Bursa)</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Form Fields */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5 text-xs">
+              <div>
+                <label className="block font-semibold text-[#141414] mb-1">شماره پیش‌فاکتور (PI No.)</label>
+                <input
+                  type="text"
+                  value={piNumber}
+                  onChange={(e) => setPiNumber(e.target.value)}
+                  className="w-full bg-[#F5F4F0] p-2 rounded-lg border border-transparent focus:border-[#EE6123] focus:bg-white font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold text-[#141414] mb-1">فروشنده / کارخانه</label>
+                <input
+                  type="text"
+                  value={piSupplierName}
+                  onChange={(e) => setPiSupplierName(e.target.value)}
+                  className="w-full bg-[#F5F4F0] p-2 rounded-lg border border-transparent focus:border-[#EE6123] focus:bg-white"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold text-[#141414] mb-1">کشور مبدأ</label>
+                <input
+                  type="text"
+                  value={piCountry}
+                  onChange={(e) => setPiCountry(e.target.value)}
+                  className="w-full bg-[#F5F4F0] p-2 rounded-lg border border-transparent focus:border-[#EE6123] focus:bg-white"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold text-[#141414] mb-1">قیمت واحد خام</label>
+                <div className="flex gap-1.5">
+                  <input
+                    type="text"
+                    value={piUnitPrice}
+                    onChange={(e) => setPiUnitPrice(e.target.value)}
+                    dir="ltr"
+                    className="flex-1 bg-[#F5F4F0] p-2 rounded-lg border border-transparent focus:border-[#EE6123] focus:bg-white text-left font-bold"
+                  />
+                  <select
+                    value={piCurrency}
+                    onChange={(e) => setPiCurrency(e.target.value as any)}
+                    className="bg-[#F5F4F0] p-2 rounded-lg border border-transparent font-bold text-xs"
+                  >
+                    <option value="USD">USD $</option>
+                    <option value="EUR">EUR €</option>
+                    <option value="CNY">CNY ¥</option>
+                    <option value="AED">AED د.إ</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-semibold text-[#141414] mb-1">تعداد سفارش (Quantity)</label>
+                <input
+                  type="text"
+                  value={toPersianDigits(piQuantity)}
+                  onChange={(e) => setPiQuantity(e.target.value)}
+                  className="w-full bg-[#F5F4F0] p-2 rounded-lg border border-transparent focus:border-[#EE6123] focus:bg-white tabular-nums"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold text-[#141414] mb-1">اینکوترم اعلام‌شده در PI</label>
+                <select
+                  value={piIncoterm}
+                  onChange={(e) => setPiIncoterm(e.target.value as any)}
+                  className="w-full bg-[#F5F4F0] p-2 rounded-lg border border-transparent focus:border-[#EE6123] focus:bg-white font-bold"
+                >
+                  <option value="EXW">EXW - تحویل درب کارخانه</option>
+                  <option value="FOB">FOB - تحویل روی کشتی مبدأ</option>
+                  <option value="CFR">CFR - کالا و کرایه حمل تا مقصد</option>
+                  <option value="CIF">CIF - کالا، بیمه و کرایه تا مقصد</option>
+                  <option value="DAP">DAP - تحویل در محل مقصد</option>
+                  <option value="DDP">DDP - تحویل با ترخیص و پرداخت عوارض</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block font-semibold text-[#141414] mb-1">کرایه حمل بین‌المللی ($)</label>
+                <input
+                  type="text"
+                  value={toPersianDigits(piFreight)}
+                  onChange={(e) => setPiFreight(e.target.value)}
+                  className="w-full bg-[#F5F4F0] p-2 rounded-lg border border-transparent focus:border-[#EE6123] focus:bg-white tabular-nums"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold text-[#141414] mb-1">حقوق ورودی گمرک ایران (%)</label>
+                <input
+                  type="text"
+                  value={toPersianDigits(piTariffPercent)}
+                  onChange={(e) => setPiTariffPercent(e.target.value)}
+                  className="w-full bg-[#F5F4F0] p-2 rounded-lg border border-transparent focus:border-[#EE6123] focus:bg-white tabular-nums"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold text-[#141414] mb-1">زمان ساخت کارخانه (روز)</label>
+                <input
+                  type="text"
+                  value={toPersianDigits(piLeadTime)}
+                  onChange={(e) => setPiLeadTime(e.target.value)}
+                  className="w-full bg-[#F5F4F0] p-2 rounded-lg border border-transparent focus:border-[#EE6123] focus:bg-white tabular-nums"
+                />
+              </div>
+
+              <div className="sm:col-span-2 md:col-span-3">
+                <label className="block font-semibold text-[#141414] mb-1">شرایط پرداخت اعلامی فروشنده</label>
+                <input
+                  type="text"
+                  value={piPaymentTerms}
+                  onChange={(e) => setPiPaymentTerms(e.target.value)}
+                  className="w-full bg-[#F5F4F0] p-2 rounded-lg border border-transparent focus:border-[#EE6123] focus:bg-white"
+                />
+              </div>
+            </div>
+
+            {/* Output Calculation Result Box */}
+            <div className="bg-[#181818] text-white rounded-xl p-4 sm:p-5 space-y-4">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 pb-3 border-b border-white/15">
+                <div>
+                  <div className="text-xs text-white/70">نتیجه نرمال‌سازی استانداردسازی شده:</div>
+                  <div className="text-base font-bold text-white flex items-center gap-2">
+                    <span>تحویل اسکله بندرعباس (Landed Cost CIF Eq.)</span>
+                    <span className="bg-[#FDF498] text-[#181818] text-[10px] px-2 py-0.5 rounded-full font-bold">
+                      {normalizedPiResult.paymentRiskGrade}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="text-left sm:text-right">
+                  <div className="text-[11px] text-white/70">صرفه‌جویی نسبت به بنچمارک بازار:</div>
+                  <div className="text-base font-black text-[#FDF498] tabular-nums">
+                    {normalizedPiResult.savingsVsBenchmarkPercent > 0 ? '+' : ''}
+                    {formatPersianPercent(normalizedPiResult.savingsVsBenchmarkPercent, 1)}
+                  </div>
+                </div>
+              </div>
+
+              {/* 3 Main Figures */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-center">
+                <div className="bg-white/10 p-3 rounded-xl border border-white/10">
+                  <div className="text-[11px] text-white/70">قیمت نرمال‌شده CIF بندرعباس</div>
+                  <div className="text-xl font-bold text-white mt-1 tabular-nums">
+                    ${toPersianDigits(normalizedPiResult.normalizedUnitPriceCifUsd.toFixed(2))}
+                  </div>
+                  <div className="text-[10px] text-white/60 mt-0.5">معادل هر واحد</div>
+                </div>
+
+                <div className="bg-white/15 p-3 rounded-xl border border-[#FDF498]/40">
+                  <div className="text-[11px] text-[#FDF498] font-bold">بهای تمام‌شده کل در انبار خریدار</div>
+                  <div className="text-2xl font-black text-[#FDF498] mt-1 tabular-nums">
+                    ${toPersianDigits(normalizedPiResult.landedCostEstimatedPerUnitUsd.toFixed(2))}
+                  </div>
+                  <div className="text-[10px] text-white/70 mt-0.5">شامل حقوق گمرکی و ترخیص</div>
+                </div>
+
+                <div className="bg-white/10 p-3 rounded-xl border border-white/10">
+                  <div className="text-[11px] text-white/70">ارزش کل محموله در مقصد</div>
+                  <div className="text-xl font-bold text-white mt-1 tabular-nums">
+                    ${toPersianDigits(normalizedPiResult.totalOrderLandedUsd.toLocaleString())}
+                  </div>
+                  <div className="text-[10px] text-white/60 mt-0.5">
+                    برای {toPersianDigits(Number(piQuantity).toLocaleString())} عدد
+                  </div>
+                </div>
+              </div>
+
+              {/* Explanation Note */}
+              <div className="text-xs text-white/80 bg-white/5 p-2.5 rounded-lg border border-white/10 leading-relaxed">
+                <span className="font-bold text-[#FDF498]">تطبیق اینکوترم: </span>
+                {normalizedPiResult.incotermAdjustmentExplanation}
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setPiModalOpen(false);
+                  showToast(
+                    'پیش‌فاکتور به ماتریس مقایسه افزوده شد',
+                    `گزینه ${piSupplierName} با بهای تمام‌شده $${toPersianDigits(
+                      normalizedPiResult.landedCostEstimatedPerUnitUsd.toFixed(2)
+                    )} در جدول مقایسه بارگذاری گردید.`,
+                    'success'
+                  );
+                  onNavigate('comparison');
+                }}
+                className="flex-1 bg-[#181818] text-white hover:bg-black py-2.5 px-4 rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-1.5"
+              >
+                <span>انتقال مستقیم به ماتریس مقایسه بهای تمام‌شده</span>
+                <span className="text-[#FDF498]">←</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setPiModalOpen(false);
+                  showToast(
+                    'پیش‌فاکتور در آرشیو ثبت شد',
+                    `پیش‌فاکتور ${piNumber} با موفقیت در سوابق استعلام ذخیره گردید.`,
+                    'info'
+                  );
+                }}
+                className="px-4 py-2.5 bg-[#F5F4F0] text-[#141414] hover:bg-[#EAE8E4] rounded-xl text-xs font-medium transition-colors"
+              >
+                ذخیره در آرشیو استعلام‌ها
+              </button>
+            </div>
           </div>
         </div>
       )}

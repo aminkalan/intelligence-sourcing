@@ -15,6 +15,14 @@ import {
   Award,
   Globe,
   SlidersHorizontal,
+  ShieldCheck,
+  Factory,
+  Zap,
+  Check,
+  AlertTriangle,
+  Video,
+  FileCheck,
+  Layers,
 } from 'lucide-react';
 import { OrangeFeaturePanel } from '../common/OrangeFeaturePanel';
 import { MOCK_SUPPLIERS } from '../../data/mockData';
@@ -38,6 +46,7 @@ export const SuppliersPage: React.FC<SuppliersPageProps> = ({
   const [selectedCountry, setSelectedCountry] = useState<string>('all');
   const [selectedType, setSelectedType] = useState<string>('all');
   const [minTrustScore, setMinTrustScore] = useState<number>(75);
+  const [profileTab, setProfileTab] = useState<'overview' | 'factory_audit' | 'anti_fraud'>('overview');
 
   // Selected Supplier for Detail Modal / Profile View
   const [activeSupplier, setActiveSupplier] = useState<Supplier | null>(() => {
@@ -272,116 +281,284 @@ export const SuppliersPage: React.FC<SuppliersPageProps> = ({
               </div>
             </div>
 
-            {/* Description & Capacity */}
-            <div className="bg-[#FAF9F7] p-4 rounded-xl text-xs text-[#141414] leading-relaxed">
-              <div className="font-semibold text-sm mb-1 text-[#181818]">درباره کارخانه:</div>
-              {activeSupplier.description}
+            {/* Profile Sub-Navigation Tabs */}
+            <div className="flex items-center gap-2 border-b border-[#E3E1DD] pb-2 text-xs overflow-x-auto">
+              <button
+                onClick={() => setProfileTab('overview')}
+                className={`px-3 py-1.5 rounded-lg font-bold transition-colors flex items-center gap-1.5 shrink-0 ${
+                  profileTab === 'overview'
+                    ? 'bg-[#181818] text-white shadow-xs'
+                    : 'text-[#7E7D7A] hover:text-[#141414] hover:bg-[#F5F4F0]'
+                }`}
+              >
+                <Building2 className="w-3.5 h-3.5" />
+                <span>مشخصات فنی و عملکرد تجاری</span>
+              </button>
+
+              <button
+                onClick={() => setProfileTab('factory_audit')}
+                className={`px-3 py-1.5 rounded-lg font-bold transition-colors flex items-center gap-1.5 shrink-0 ${
+                  profileTab === 'factory_audit'
+                    ? 'bg-[#181818] text-white shadow-xs'
+                    : 'text-[#7E7D7A] hover:text-[#141414] hover:bg-[#F5F4F0]'
+                }`}
+              >
+                <Factory className="w-3.5 h-3.5" />
+                <span>ممیزی فیزیکی کارخانه و ماشین‌آلات</span>
+              </button>
+
+              <button
+                onClick={() => setProfileTab('anti_fraud')}
+                className={`px-3 py-1.5 rounded-lg font-bold transition-colors flex items-center gap-1.5 shrink-0 ${
+                  profileTab === 'anti_fraud'
+                    ? 'bg-[#181818] text-white shadow-xs'
+                    : 'text-[#7E7D7A] hover:text-[#141414] hover:bg-[#F5F4F0]'
+                }`}
+              >
+                <ShieldCheck className="w-3.5 h-3.5" />
+                <span>احراز تولیدکننده واقعی در برابر دلال (Anti-Fraud)</span>
+              </button>
             </div>
 
-            {/* Data Grid: Terms, Capacity & Export Markets */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-xs">
-              <div className="p-3 rounded-lg bg-[#F5F4F0]">
-                <span className="text-[#7E7D7A] text-[11px] block">ظرفیت تولید ماهانه</span>
-                <span className="font-bold text-[#141414] mt-1 block">
-                  {toPersianDigits(activeSupplier.capacityMonthly)}
-                </span>
-              </div>
-              <div className="p-3 rounded-lg bg-[#F5F4F0]">
-                <span className="text-[#7E7D7A] text-[11px] block">اینکوترمز تحویل</span>
-                <span className="font-bold text-[#141414] mt-1 block truncate">
-                  {activeSupplier.incoterms.join(' · ')}
-                </span>
-              </div>
-              <div className="p-3 rounded-lg bg-[#F5F4F0]">
-                <span className="text-[#7E7D7A] text-[11px] block">شرایط پرداخت متعارف</span>
-                <span className="font-bold text-[#141414] mt-1 block truncate">
-                  {activeSupplier.paymentTerms}
-                </span>
-              </div>
-              <div className="p-3 rounded-lg bg-[#F5F4F0]">
-                <span className="text-[#7E7D7A] text-[11px] block">بازارهای صادراتی فعال</span>
-                <span className="font-bold text-[#141414] mt-1 block truncate">
-                  {activeSupplier.exportMarkets.join(' · ')}
-                </span>
-              </div>
-            </div>
+            {/* TAB 1: OVERVIEW & PERFORMANCE */}
+            {profileTab === 'overview' && (
+              <>
+                {/* Description & Capacity */}
+                <div className="bg-[#FAF9F7] p-4 rounded-xl text-xs text-[#141414] leading-relaxed">
+                  <div className="font-semibold text-sm mb-1 text-[#181818]">درباره کارخانه:</div>
+                  {activeSupplier.description}
+                </div>
 
-            {/* Charts Section: On-time Delivery Donut & Export History Bar Chart */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
-              {/* Donut Gauge: On-time delivery rate */}
-              <div className="p-4 rounded-xl bg-[#FFFFFF] border border-[#E3E1DD] flex items-center justify-between">
-                <div>
-                  <h5 className="font-bold text-xs text-[#141414]">نرخ تحویل به‌موقع سفارشات</h5>
-                  <p className="text-[11px] text-[#7E7D7A] mt-1">
-                    ثبت خروج به موقع کالا در گمرک مبدأ بر اساس اسناد بارنامه
-                  </p>
-                  <div className="mt-3 flex items-center gap-2">
-                    <span className="text-2xl font-black text-[#52C41A] tabular-nums">
-                      {formatPersianPercent(activeSupplier.onTimeDeliveryRate)}
+                {/* Data Grid: Terms, Capacity & Export Markets */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-xs">
+                  <div className="p-3 rounded-lg bg-[#F5F4F0]">
+                    <span className="text-[#7E7D7A] text-[11px] block">ظرفیت تولید ماهانه</span>
+                    <span className="font-bold text-[#141414] mt-1 block">
+                      {toPersianDigits(activeSupplier.capacityMonthly)}
                     </span>
-                    <span className="text-[11px] text-[#7E7D7A]">
-                      شکایت/تأخیر: {formatPersianPercent(activeSupplier.complaintRate)}
+                  </div>
+                  <div className="p-3 rounded-lg bg-[#F5F4F0]">
+                    <span className="text-[#7E7D7A] text-[11px] block">اینکوترمز تحویل</span>
+                    <span className="font-bold text-[#141414] mt-1 block truncate">
+                      {activeSupplier.incoterms.join(' · ')}
+                    </span>
+                  </div>
+                  <div className="p-3 rounded-lg bg-[#F5F4F0]">
+                    <span className="text-[#7E7D7A] text-[11px] block">شرایط پرداخت متعارف</span>
+                    <span className="font-bold text-[#141414] mt-1 block truncate">
+                      {activeSupplier.paymentTerms}
+                    </span>
+                  </div>
+                  <div className="p-3 rounded-lg bg-[#F5F4F0]">
+                    <span className="text-[#7E7D7A] text-[11px] block">بازارهای صادراتی فعال</span>
+                    <span className="font-bold text-[#141414] mt-1 block truncate">
+                      {activeSupplier.exportMarkets.join(' · ')}
                     </span>
                   </div>
                 </div>
 
-                {/* SVG Donut */}
-                <div className="relative w-20 h-20 shrink-0">
-                  <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
-                    <path
-                      className="text-[#E3E1DD]"
-                      strokeWidth="3.5"
-                      stroke="currentColor"
-                      fill="none"
-                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                    />
-                    <path
-                      className="text-[#52C41A]"
-                      strokeDasharray={`${activeSupplier.onTimeDeliveryRate}, 100`}
-                      strokeWidth="3.5"
-                      strokeLinecap="round"
-                      stroke="currentColor"
-                      fill="none"
-                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                    />
-                  </svg>
-                  <div className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-[#141414]">
-                    {toPersianDigits(Math.round(activeSupplier.onTimeDeliveryRate))}٪
-                  </div>
-                </div>
-              </div>
-
-              {/* Bar Chart: Export history (M USD) */}
-              <div className="p-4 rounded-xl bg-[#FFFFFF] border border-[#E3E1DD]">
-                <div className="flex items-center justify-between mb-3">
-                  <h5 className="font-bold text-xs text-[#141414]">روند حجم صادرات سالانه (M USD)</h5>
-                  <span className="text-[10px] text-[#7E7D7A]">داده‌های رسمی گمرک مبدأ</span>
-                </div>
-
-                <div className="flex items-end justify-between gap-3 h-20 pt-2">
-                  {activeSupplier.exportHistoryAnnual.map((item) => {
-                    const maxVol = 30;
-                    const heightPct = Math.round((item.volumeMUsd / maxVol) * 100);
-                    return (
-                      <div key={item.year} className="flex-1 flex flex-col items-center gap-1.5">
-                        <span className="text-[10px] font-bold text-[#141414] tabular-nums">
-                          ${toPersianDigits(item.volumeMUsd.toFixed(1))}M
+                {/* Charts Section: On-time Delivery Donut & Export History Bar Chart */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+                  {/* Donut Gauge: On-time delivery rate */}
+                  <div className="p-4 rounded-xl bg-[#FFFFFF] border border-[#E3E1DD] flex items-center justify-between">
+                    <div>
+                      <h5 className="font-bold text-xs text-[#141414]">نرخ تحویل به‌موقع سفارشات</h5>
+                      <p className="text-[11px] text-[#7E7D7A] mt-1">
+                        ثبت خروج به موقع کالا در گمرک مبدأ بر اساس اسناد بارنامه
+                      </p>
+                      <div className="mt-3 flex items-center gap-2">
+                        <span className="text-2xl font-black text-[#52C41A] tabular-nums">
+                          {formatPersianPercent(activeSupplier.onTimeDeliveryRate)}
                         </span>
-                        <div className="w-full bg-[#F5F4F0] rounded-t-md h-12 flex items-end">
-                          <div
-                            style={{ height: `${heightPct}%` }}
-                            className="w-full bg-[#181818] rounded-t-md transition-all duration-300 group-hover:bg-[#EE6123]"
-                          />
-                        </div>
-                        <span className="text-[10px] text-[#7E7D7A]">
-                          {toPersianDigits(item.year)}
+                        <span className="text-[11px] text-[#7E7D7A]">
+                          شکایت/تأخیر: {formatPersianPercent(activeSupplier.complaintRate)}
                         </span>
                       </div>
-                    );
-                  })}
+                    </div>
+
+                    {/* SVG Donut */}
+                    <div className="relative w-20 h-20 shrink-0">
+                      <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
+                        <path
+                          className="text-[#E3E1DD]"
+                          strokeWidth="3.5"
+                          stroke="currentColor"
+                          fill="none"
+                          d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                        />
+                        <path
+                          className="text-[#52C41A]"
+                          strokeDasharray={`${activeSupplier.onTimeDeliveryRate}, 100`}
+                          strokeWidth="3.5"
+                          strokeLinecap="round"
+                          stroke="currentColor"
+                          fill="none"
+                          d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                        />
+                      </svg>
+                      <div className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-[#141414]">
+                        {toPersianDigits(Math.round(activeSupplier.onTimeDeliveryRate))}٪
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Bar Chart: Export history (M USD) */}
+                  <div className="p-4 rounded-xl bg-[#FFFFFF] border border-[#E3E1DD]">
+                    <div className="flex items-center justify-between mb-3">
+                      <h5 className="font-bold text-xs text-[#141414]">روند حجم صادرات سالانه (M USD)</h5>
+                      <span className="text-[10px] text-[#7E7D7A]">داده‌های رسمی گمرک مبدأ</span>
+                    </div>
+
+                    <div className="flex items-end justify-between gap-3 h-20 pt-2">
+                      {activeSupplier.exportHistoryAnnual.map((item) => {
+                        const maxVol = 30;
+                        const heightPct = Math.round((item.volumeMUsd / maxVol) * 100);
+                        return (
+                          <div key={item.year} className="flex-1 flex flex-col items-center gap-1.5">
+                            <span className="text-[10px] font-bold text-[#141414] tabular-nums">
+                              ${toPersianDigits(item.volumeMUsd.toFixed(1))}M
+                            </span>
+                            <div className="w-full bg-[#F5F4F0] rounded-t-md h-12 flex items-end">
+                              <div
+                                style={{ height: `${heightPct}%` }}
+                                className="w-full bg-[#181818] rounded-t-md transition-all duration-300 group-hover:bg-[#EE6123]"
+                              />
+                            </div>
+                            <span className="text-[10px] text-[#7E7D7A]">
+                              {toPersianDigits(item.year)}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* TAB 2: FACTORY PHYSICAL AUDIT */}
+            {profileTab === 'factory_audit' && (
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+                  <div className="p-3.5 rounded-xl bg-[#FAF9F7] border border-[#E3E1DD] space-y-1">
+                    <span className="text-[#7E7D7A] block text-[11px]">مساحت سالن تولید و انبار</span>
+                    <span className="font-bold text-sm text-[#141414] block">۲۸,۰۰۰ متر مربع</span>
+                    <span className="text-[10px] text-[#52C41A] font-semibold">مالکیت ثبتی تأییدشده</span>
+                  </div>
+
+                  <div className="p-3.5 rounded-xl bg-[#FAF9F7] border border-[#E3E1DD] space-y-1">
+                    <span className="text-[#7E7D7A] block text-[11px]">تعداد پرسنل فنی و مهندسی</span>
+                    <span className="font-bold text-sm text-[#141414] block">۲۴۰ نفر در ۳ شیفت کاری</span>
+                    <span className="text-[10px] text-[#52C41A] font-semibold">بیمه تأمین اجتماعی فعال</span>
+                  </div>
+
+                  <div className="p-3.5 rounded-xl bg-[#FAF9F7] border border-[#E3E1DD] space-y-1">
+                    <span className="text-[#7E7D7A] block text-[11px]">مصرف برق صنعتی ماهانه</span>
+                    <span className="font-bold text-sm text-[#141414] block">۲۲۰ کیلووات ساعت دیماند</span>
+                    <span className="text-[10px] text-[#52C41A] font-semibold">اثبات کارکرد مستمر خطوط</span>
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-xl bg-[#FAF9F7] border border-[#E3E1DD] space-y-3 text-xs">
+                  <h5 className="font-bold text-sm text-[#141414] flex items-center gap-2">
+                    <Factory className="w-4 h-4 text-[#EE6123]" />
+                    <span>تجهیزات و ماشین‌آلات احراز شده در ممیزی حضوری SGS</span>
+                  </h5>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] text-[#141414]">
+                    <div className="flex items-center gap-1.5 p-2 bg-white rounded-lg border border-[#E3E1DD]">
+                      <Check className="w-3.5 h-3.5 text-[#52C41A] shrink-0" />
+                      <span>۱۲ دستگاه تراش و سنگ‌زنی CNC پنج محوره DMG MORI آلمان</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 p-2 bg-white rounded-lg border border-[#E3E1DD]">
+                      <Check className="w-3.5 h-3.5 text-[#52C41A] shrink-0" />
+                      <span>۲ خط کوره سخت‌کاری حرارتی تحت خلأ با کنترل دمای اتوماتیک</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 p-2 bg-white rounded-lg border border-[#E3E1DD]">
+                      <Check className="w-3.5 h-3.5 text-[#52C41A] shrink-0" />
+                      <span>دستگاه کوانتومتری متالورژی ARL جهت آنالیز ترکیب شیمیایی فولاد</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 p-2 bg-white rounded-lg border border-[#E3E1DD]">
+                      <Check className="w-3.5 h-3.5 text-[#52C41A] shrink-0" />
+                      <span>آزمایشگاه تست لرزش و سختی‌سنجی راکول (HRC) با استاندارد DIN</span>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
+
+            {/* TAB 3: ANTI-FRAUD & BROKER DETECTION SHIELD */}
+            {profileTab === 'anti_fraud' && (
+              <div className="space-y-4 text-xs">
+                {/* Result Hero Banner */}
+                <div className="p-4 rounded-xl bg-[#52C41A]/10 border border-[#52C41A]/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-[#52C41A] text-white flex items-center justify-center shrink-0">
+                      <ShieldCheck className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <div className="font-bold text-sm text-[#141414]">
+                        نتیجه پالایش هوشمند: تولیدکننده مستقیم واقعی (Direct OEM Manufacturer)
+                      </div>
+                      <div className="text-[11px] text-[#7E7D7A]">
+                        فاقد نشانه‌های شرکت‌های کاغذی، دلالان بدون انبار یا حساب‌های واسط بانکی
+                      </div>
+                    </div>
+                  </div>
+                  <span className="px-3 py-1 rounded-full bg-[#52C41A] text-white font-bold text-xs shrink-0">
+                    ضریب ایمنی: ۹۵٪
+                  </span>
+                </div>
+
+                {/* Anti-Fraud Checklist */}
+                <div className="p-4 rounded-xl bg-[#FAF9F7] border border-[#E3E1DD] space-y-2.5">
+                  <h5 className="font-bold text-sm text-[#141414] mb-2">
+                    چک‌لیست ۱۰ ماده‌ای راستی‌آزمایی و مقابله با تقلب تجاری
+                  </h5>
+
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between p-2.5 bg-white rounded-lg border border-[#E3E1DD]">
+                      <span className="font-medium">۱. تطبیق نام دارنده حساب بانکی با نام ثبتی رسمی شرکت</span>
+                      <span className="text-[#52C41A] font-bold flex items-center gap-1">
+                        <Check className="w-4 h-4" />
+                        تطبیق ۱۰۰٪
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between p-2.5 bg-white rounded-lg border border-[#E3E1DD]">
+                      <span className="font-medium">۲. سابقه ثبت دامنه اینترنتی در مقایسه با تاریخ ادعایی تأسیس</span>
+                      <span className="text-[#52C41A] font-bold flex items-center gap-1">
+                        <Check className="w-4 h-4" />
+                        ثبت دامنه از ۲۰۱۴ (منطبق)
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between p-2.5 bg-white rounded-lg border border-[#E3E1DD]">
+                      <span className="font-medium">۳. اصالت تصاویر کاتالوگ (عدم سرقت عکس در جست‌وجوی معکوس وب)</span>
+                      <span className="text-[#52C41A] font-bold flex items-center gap-1">
+                        <Check className="w-4 h-4" />
+                        تصاویر اختصاصی کارخانه
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between p-2.5 bg-white rounded-lg border border-[#E3E1DD]">
+                      <span className="font-medium">۴. سوابق اظهارنامه صادراتی و کوتاژهای خروج کانتینر</span>
+                      <span className="text-[#52C41A] font-bold flex items-center gap-1">
+                        <Check className="w-4 h-4" />
+                        ۳۴۰ فقره بارنامه معتبر
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between p-2.5 bg-white rounded-lg border border-[#E3E1DD]">
+                      <span className="font-medium">۵. بررسی پروانه بهره‌برداری وزارت صنایع و مالیات مستقیم</span>
+                      <span className="text-[#52C41A] font-bold flex items-center gap-1">
+                        <Check className="w-4 h-4" />
+                        مجوز فعال تا ۲۰۲۸
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
