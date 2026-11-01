@@ -112,3 +112,38 @@ test('normalizeProformaInvoice normalizes FOB terms to CIF and estimates landed 
   assert.ok(normalized.savingsVsBenchmarkPercent > 0);
 });
 
+test('marketDataService provides live rates and handles market shock simulations', async () => {
+  const { marketDataService } = await import('../services/marketDataService.ts');
+  const initialRates = marketDataService.getState();
+  
+  // Verify basic baseline market data
+  assert.ok(initialRates.currencies.length >= 6);
+  assert.ok(initialRates.freightRoutes.length >= 4);
+  assert.ok(initialRates.rawMaterials.length >= 4);
+  assert.ok(initialRates.portStatuses.length >= 4);
+  assert.ok(initialRates.riskCorridors.length >= 4);
+
+  const nimaRate = marketDataService.getUsdNimaRate();
+  assert.ok(nimaRate > 50000, 'NIMA rate should be realistic > 50k Toman');
+
+  const shanghaiFreight = marketDataService.getShanghaiFreightRate();
+  assert.ok(shanghaiFreight > 2000, 'Shanghai 40ft container freight should be > $2,000');
+
+  // Test conversion
+  const tomanValue = marketDataService.convertUsdToToman(1000, 'nima');
+  assert.equal(tomanValue, 1000 * nimaRate);
+
+  // Test Freight Spike Shock (+32%)
+  marketDataService.triggerMarketShock('freight_spike');
+  const shockedState = marketDataService.getState();
+  assert.equal(shockedState.activeShock, 'freight_spike');
+  assert.ok(marketDataService.getShanghaiFreightRate() > shanghaiFreight);
+
+  // Test Reset back to baseline
+  marketDataService.triggerMarketShock('none');
+  const resetState = marketDataService.getState();
+  assert.equal(resetState.activeShock, 'none');
+  assert.equal(marketDataService.getShanghaiFreightRate(), 2850);
+});
+
+

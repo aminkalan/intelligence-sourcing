@@ -49,6 +49,7 @@ export const TopBar: React.FC<TopBarProps> = ({
   activePage,
   searchQuery,
   onSearchChange,
+  onQuickNavigate,
 }) => {
   const meta = PAGE_TITLES[activePage] || PAGE_TITLES.overview;
 
@@ -71,7 +72,7 @@ export const TopBar: React.FC<TopBarProps> = ({
       </div>
 
       {/* Center Zone: Search field 'جست‌وجوی کالا یا کد HS...' */}
-      <div className="flex-1 max-w-md mx-2">
+      <div className="flex-1 max-w-sm mx-2">
         <div className="relative flex items-center">
           <input
             type="text"
@@ -90,6 +91,30 @@ export const TopBar: React.FC<TopBarProps> = ({
             </button>
           )}
         </div>
+      </div>
+
+      {/* Live Market Pulse Strip */}
+      <div
+        onClick={() => onQuickNavigate('market-watch')}
+        className="hidden xl:flex items-center gap-2.5 bg-[#FAF9F7] hover:bg-[#F5F4F0] px-3 py-1.5 rounded-xl border border-[#E3E1DD] cursor-pointer transition-colors text-xs"
+        title="مشاهده تابلوی زنده شاخص‌های بازار و ریسک"
+      >
+        <span className="flex h-2 w-2 relative">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#52C41A] opacity-75"></span>
+          <span className="relative inline-flex rounded-full h-2 w-2 bg-[#52C41A]"></span>
+        </span>
+        <div className="flex items-center gap-2 font-mono text-[11px]">
+          <span className="text-[#141414] font-bold">
+            دلار نیما: <span className="text-[#EE6123]">۵۴,۸۵۰</span> ت
+          </span>
+          <span className="text-[#BFBDB8]">|</span>
+          <span className="text-[#141414] font-bold">
+            حمل ۴۰ft چین: <span className="text-[#181818]">$۲,۸۵۰</span>
+          </span>
+        </div>
+        <span className="text-[10px] font-bold text-[#52C41A] bg-[#52C41A]/10 px-1.5 py-0.5 rounded">
+          زنده
+        </span>
       </div>
 
       {/* Left Zone: Company Profile & User Avatar */}

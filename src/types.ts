@@ -199,3 +199,80 @@ export interface MonitoredProduct {
   priceHistory: number[];
   riskLevel: 'پایین' | 'متوسط' | 'بالا';
 }
+
+export interface CurrencyRate {
+  id: string;
+  code: string;
+  nameFa: string;
+  category: 'سامانه نیما' | 'مرکز مبادله (تالار دوم)' | 'بازار آزاد' | 'منطقه‌ای';
+  rateToman: number;
+  change24hPct: number;
+  high24h: number;
+  low24h: number;
+  sparkline: number[];
+  updatedAt: string;
+}
+
+export interface FreightRouteIndex {
+  id: string;
+  routeNameFa: string;
+  origin: string;
+  destination: string;
+  transportType: 'دریایی ۴۰ فوت' | 'دریایی ۲۰ فوت' | 'جاده‌ای ترانزیت (تیر)' | 'هوایی فله';
+  rateUsd: number;
+  changeWeeklyPct: number;
+  transitDays: number;
+  congestionDays: number;
+  surchargeUsd: number;
+  statusLabel: 'روان و فعال' | 'افزایش تقاضا' | 'هشدار هزینه جنگی' | 'تأخیر جاده‌ای';
+}
+
+export interface RawMaterialIndex {
+  id: string;
+  nameFa: string;
+  symbol: string;
+  market: 'LME' | 'SHFE' | 'SMM' | 'Iran IME';
+  priceUsdPerTon: number;
+  unit: string;
+  changePct: number;
+  sparkline: number[];
+  impactOnComponents: string;
+}
+
+export interface PortLogisticsStatus {
+  id: string;
+  portNameFa: string;
+  portCode: string;
+  country: string;
+  flag: string;
+  avgDwellDays: number;
+  clearanceEfficiencyPct: number;
+  congestionStatus: 'عادی و روان' | 'ترافیک متوسط' | 'تراکم و کندی';
+  statusColor: 'green' | 'orange' | 'red';
+  recentNote: string;
+}
+
+export interface RiskCorridorIndex {
+  id: string;
+  corridorNameFa: string;
+  geographicZone: string;
+  riskScore: number; // 0 - 100
+  riskLevel: 'پایین (سبز)' | 'متوسط (زرد)' | 'هشدار بالا (نارنجی)' | 'بحرانی (قرمز)';
+  securityStatus: string;
+  financialChannelStatus: string;
+  recommendedAction: string;
+}
+
+export type MarketShockType = 'none' | 'freight_spike' | 'fx_spike' | 'port_congestion';
+
+export interface MarketDataState {
+  currencies: CurrencyRate[];
+  freightRoutes: FreightRouteIndex[];
+  rawMaterials: RawMaterialIndex[];
+  portStatuses: PortLogisticsStatus[];
+  riskCorridors: RiskCorridorIndex[];
+  lastUpdated: Date;
+  activeShock: MarketShockType;
+  isAutoSyncActive: boolean;
+}
+

@@ -25,6 +25,7 @@ import { MOCK_SUPPLIERS, BUYER_PROFILE, MOCK_RFQS } from '../../data/mockData';
 import { toPersianDigits, formatPersianCurrency, formatPersianPercent } from '../../utils/persian';
 import { useToast } from '../common/Toast';
 import { PageId } from '../../types';
+import { useMarketData } from '../../hooks/useMarketData';
 
 interface OverviewPageProps {
   onNavigate: (page: PageId, extra?: any) => void;
@@ -79,10 +80,38 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({ onNavigate }) => {
     );
   };
 
+  const { currencies, freightRoutes, rawMaterials } = useMarketData();
+
   return (
     <div className="flex flex-col lg:flex-row gap-6 items-start">
       {/* Main Content Area (Right Side ~70%) */}
       <div className="flex-1 w-full space-y-6">
+        {/* Live Market Feeds Strip */}
+        <div className="p-3.5 rounded-xl bg-white border border-[#E3E1DD] shadow-xs flex flex-wrap items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-2.5">
+            <span className="flex h-2.5 w-2.5 relative">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#52C41A] opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#52C41A]"></span>
+            </span>
+            <span className="font-bold text-[#141414]">فید شاخص‌های زنده بازار امروز:</span>
+            <div className="hidden sm:flex items-center gap-3 font-mono text-[11px] text-[#7E7D7A]">
+              <span>دلار نیما: <strong className="text-[#EE6123]">{toPersianDigits(currencies[0]?.rateToman.toLocaleString())}</strong> ت</span>
+              <span>•</span>
+              <span>حمل ۴۰ft چین: <strong className="text-[#141414]">${toPersianDigits(freightRoutes[0]?.rateUsd)}</strong></span>
+              <span>•</span>
+              <span>فولاد بیرینگ SMM: <strong className="text-[#181818]">${toPersianDigits(rawMaterials[0]?.priceUsdPerTon)}/تن</strong></span>
+            </div>
+          </div>
+
+          <button
+            onClick={() => onNavigate('market-watch')}
+            className="px-2.5 py-1 rounded-lg bg-[#FAF9F7] hover:bg-[#F5F4F0] text-[#141414] border border-[#E3E1DD] text-[11px] font-bold transition-colors flex items-center gap-1 cursor-pointer"
+          >
+            <span>مشاهده پایانه زنده بازار</span>
+            <ChevronLeft className="w-3.5 h-3.5 text-[#EE6123]" />
+          </button>
+        </div>
+
         {/* 4 KPI Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
           {/* KPI 1: کالاهای تحت پایش ۲۴ */}

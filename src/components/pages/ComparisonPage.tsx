@@ -13,6 +13,9 @@ import {
   AlertTriangle,
   Layers,
   X,
+  Activity,
+  RefreshCw,
+  Coins,
 } from 'lucide-react';
 import { OrangeFeaturePanel } from '../common/OrangeFeaturePanel';
 import { MOCK_LANDED_OFFERS } from '../../data/mockData';
@@ -30,6 +33,7 @@ import {
 } from '../../utils/persian';
 import { useToast } from '../common/Toast';
 import { PageId } from '../../types';
+import { useMarketData } from '../../hooks/useMarketData';
 
 interface ComparisonPageProps {
   onNavigate: (page: PageId, extra?: any) => void;
@@ -37,6 +41,14 @@ interface ComparisonPageProps {
 
 export const ComparisonPage: React.FC<ComparisonPageProps> = ({ onNavigate }) => {
   const { showToast } = useToast();
+  const {
+    getShanghaiFreightRate,
+    getHaiphongFreightRate,
+    getUsdNimaRate,
+    refreshNow,
+    activeShock,
+    lastUpdated,
+  } = useMarketData();
 
   // Toggles: Incoterm basis, currency, quantity
   const [incotermBasis, setIncotermBasis] = useState<'FOB' | 'CIF' | 'DDP' | 'EXW'>('CIF');
@@ -44,6 +56,7 @@ export const ComparisonPage: React.FC<ComparisonPageProps> = ({ onNavigate }) =>
   const [quantity, setQuantity] = useState<number>(10000);
   const [incotermsModalOpen, setIncotermsModalOpen] = useState(false);
   const [riskScenario, setRiskScenario] = useState<'base' | 'freight_spike' | 'fx_spike' | 'preferential_tariff'>('base');
+  const [syncWithLiveMarket, setSyncWithLiveMarket] = useState(true);
 
   // Currency multiplier
   const currencyRate = currency === 'USD' ? 1.0 : currency === 'EUR' ? 0.92 : 3.67;
@@ -77,27 +90,45 @@ export const ComparisonPage: React.FC<ComparisonPageProps> = ({ onNavigate }) =>
     showToast('اوزان بازنشانی شدند', 'ضرایب ارزیابی به حالت استاندارد ۳۰-۲۰-۱۵ بازگشتند.', 'info');
   };
 
-  // Compute Landed Cost for each offer with Risk Scenario adjustments
+  const shanghaiLiveRate = getShanghaiFreightRate();
+  const haiphongLiveRate = getHaiphongFreightRate();
+  const usdNimaRate = getUsdNimaRate();
+
+  // Compute Landed Cost for each offer with Live Market & Risk Scenario adjustments
   const computedOffers = useMemo(() => {
     return MOCK_LANDED_OFFERS.map((offer) => {
       // Adjust freight and costs based on incoterm basis and risk scenario
       let freightMultiplier = 1.0;
-      if (riskScenario === 'freight_spike') freightMultiplier = 1.30; // +30% shipping surge
+      if (riskScenario === 'freight_spike' || activeShock === 'freight_spike') freightMultiplier = 1.30;
 
       let fxBuffer = offer.fxRiskBufferPercent;
-      if (riskScenario === 'fx_spike') fxBuffer += 5.0; // +5% FX buffer
+      if (riskScenario === 'fx_spike' || activeShock === 'fx_spike') fxBuffer += 5.0;
 
       let dutiesPct = offer.dutiesPercent;
       if (riskScenario === 'preferential_tariff' && (offer.countryCode === 'TR' || offer.countryCode === 'VN')) {
         dutiesPct = Math.max(4, dutiesPct - 4); // Preferential FTA tariff discount
       }
 
+      // Live freight binding per container / truck capacity
+      let unitFreight = offer.freight;
+      if (syncWithLiveMarket) {
+        if (offer.countryCode === 'CN') {
+          unitFreight = shanghaiLiveRate / 10000; // $2,850 per 40ft HQ / 10,000 units = $0.285
+        } else if (offer.countryCode === 'VN') {
+          unitFreight = haiphongLiveRate / 10000; // $2,180 per 40ft / 10,000 units = $0.218
+        } else if (offer.countryCode === 'TR') {
+          unitFreight = 3400 / 10000; // $3,400 per 22-ton truck / 10,000 units = $0.34
+        } else if (offer.countryCode === 'IN') {
+          unitFreight = 1150 / 10000; // $1,150 per 20ft / 10,000 units = $0.115
+        }
+      }
+
       const baseFreight =
         incotermBasis === 'EXW'
-          ? offer.freight * 1.2
+          ? unitFreight * 1.2
           : incotermBasis === 'FOB'
-          ? offer.freight
-          : offer.freight;
+          ? unitFreight
+          : unitFreight;
 
       const calc = computeLandedCost({
         unitPrice: offer.unitPrice * currencyRate,
@@ -139,7 +170,18 @@ export const ComparisonPage: React.FC<ComparisonPageProps> = ({ onNavigate }) =>
         weightedScore,
       };
     });
-  }, [quantity, incotermBasis, currencyRate, weights, riskScenario]);
+  }, [
+    quantity,
+    incotermBasis,
+    currencyRate,
+    weights,
+    riskScenario,
+    syncWithLiveMarket,
+    shanghaiLiveRate,
+    haiphongLiveRate,
+    activeShock,
+  ]);
+
 
   // Find lowest landed cost and highest weighted rank
   const lowestCost = Math.min(...computedOffers.map((o) => o.calc.landedCostPerUnit));
@@ -149,6 +191,63 @@ export const ComparisonPage: React.FC<ComparisonPageProps> = ({ onNavigate }) =>
     <div className="flex flex-col lg:flex-row gap-6 items-start">
       {/* Main Content Area (Right Side ~70%) */}
       <div className="flex-1 w-full space-y-6">
+        {/* Live Market Feeds Connection Strip */}
+        <div className="p-3.5 rounded-xl bg-white border border-[#E3E1DD] shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-3">
+            <span className="flex h-2.5 w-2.5 relative shrink-0">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#52C41A] opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#52C41A]"></span>
+            </span>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-[#141414]">همگام‌سازی زنده با بازار بین‌الملل:</span>
+                <span className="text-[#52C41A] font-bold bg-[#52C41A]/10 px-2 py-0.5 rounded text-[11px]">
+                  متصل به سامانه‌ها
+                </span>
+                {activeShock !== 'none' && (
+                  <span className="text-[#EE6123] font-bold bg-[#EE6123]/10 px-2 py-0.5 rounded text-[11px]">
+                    شوک فعال: {activeShock === 'freight_spike' ? 'جهش کرایه حمل' : activeShock === 'fx_spike' ? 'نوسان ارزی' : 'ازدحام بنادر'}
+                  </span>
+                )}
+              </div>
+              <div className="flex flex-wrap items-center gap-3 text-[11px] text-[#7E7D7A] mt-1 font-mono">
+                <span>حمل ۴۰ft شانگهای: <strong className="text-[#141414]">${toPersianDigits(shanghaiLiveRate)}</strong></span>
+                <span>•</span>
+                <span>حمل ۴۰ft هایفونگ: <strong className="text-[#52C41A]">${toPersianDigits(haiphongLiveRate)}</strong></span>
+                <span>•</span>
+                <span>نرخ دلار نیما: <strong className="text-[#EE6123]">{toPersianDigits(usdNimaRate.toLocaleString())} ت</strong></span>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 self-end md:self-auto">
+            <button
+              onClick={() => {
+                setSyncWithLiveMarket(!syncWithLiveMarket);
+                showToast(
+                  syncWithLiveMarket ? 'محاسبات به حالت استاتیک رفت' : 'محاسبات به نرخ‌های زنده متصل شد',
+                  syncWithLiveMarket ? 'از مقادیر اولیه فاکتور استفاده می‌شود.' : 'کرایه حمل کانتینری و نرخ ارز مستقیماً از فید بازار اعمال گردید.',
+                  'info'
+                );
+              }}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                syncWithLiveMarket
+                  ? 'bg-[#181818] text-white'
+                  : 'bg-[#F5F4F0] text-[#7E7D7A] hover:text-[#141414]'
+              }`}
+            >
+              {syncWithLiveMarket ? 'نرخ‌های زنده: فعال' : 'نرخ‌های زنده: غیرفعال'}
+            </button>
+            <button
+              onClick={() => onNavigate('market-watch')}
+              className="px-2.5 py-1.5 rounded-lg bg-[#FAF9F7] hover:bg-[#F5F4F0] text-[#141414] border border-[#E3E1DD] text-xs font-semibold transition-colors flex items-center gap-1 cursor-pointer"
+            >
+              <span>تابلوی بازار</span>
+              <ArrowRight className="w-3.5 h-3.5 text-[#EE6123]" />
+            </button>
+          </div>
+        </div>
+
         {/* Top Control Bar: Incoterm basis, Currency, Quantity */}
         <div className="swiss-card p-4 sm:p-5 flex flex-wrap items-center justify-between gap-4">
           {/* Incoterm Basis */}
